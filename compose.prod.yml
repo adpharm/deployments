@@ -1,0 +1,63 @@
+version: "3.8"
+#
+#
+#
+#
+#
+networks:
+  default:
+    external: true
+    name: scoobydoo
+
+#
+#
+#
+#
+#
+services:
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  # Traefik
+  #
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # specify entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # enable ACME (Let's Encrypt) support
+      # - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      #- "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # - "--certificatesresolvers.myresolver.acme.email=postmaster@example.com"
+      # - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      # - "443:443"
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  # Case Builder
+  #
