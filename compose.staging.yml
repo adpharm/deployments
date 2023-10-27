@@ -37,16 +37,16 @@ services:
       - "--certificatesresolvers.leresolver.acme.tlschallenge=true" # tls challenge for letsencrypt
 
       - "--log.level=INFO" # log level
-      - "--log.filePath=/var/log/traefik.log" # log file
+      # - "--log.filePath=/var/log/traefik.log" # log file
       - "--accesslog=true" # enable access log
       - "--accesslog.filePath=/var/log/traefik-access.log" # access log file
 
       - "--api" # enable the api and dashboard (secure)
-      - "--ping.entryPoint=web" # enable ping entrypoint TODO
+      - "--ping.entryPoint=websecure" # enable ping entrypoint TODO
     labels:
       # Dashboard
       - "traefik.enable=true" # enable traefik for this container
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.staging.adapts.ca`)" # set the domain rule
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.sandboxip.adapts.ca`)" # set the domain rule
       - "traefik.http.routers.dashboard.service=api@internal" # set the service (named by traefik)
       # - "traefik.http.routers.traefik.middlewares=myauth" # set up auth middleware
       # - "traefik.http.middlewares.myauth.basicauth.users=user:$$apr1$$q8eZFHjF$$Fvmkk//V6Btlaf2i/ju5n/" # user/password
@@ -69,4 +69,4 @@ services:
       - proxy
     labels:
       - "traefik.enable=true" # enable traefik for this container
-      - "traefik.http.routers.whoami.rule=Host(`whoami.staging.adapts.ca`)" # set the domain rule
+      - "traefik.http.routers.whoami.rule=Host(`whoami.sandboxip.adapts.ca`)" # set the domain rule
