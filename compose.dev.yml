@@ -1,9 +1,36 @@
 version: "3.9"
 
-include:
-  - path: compose-helpers/compose.base.dev.yml
+networks:
+  proxy:
+    name: proxy
 
 services:
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # docker socket (bind mount)
+    command:
+      - "--entrypoints.web.address=:80" # http entrypoint
+
+      - "--providers.docker=true" # enable docker as a provider
+      - "--providers.docker.exposedbydefault=false" # do not expose every container by default (only those explicitly exposed)
+
+      - "--log.level=INFO" # log level
+
+      - "--api.insecure" # enable the api and dashboard (insecure)
+      - "--ping.entryPoint=web" # enable ping entrypoint
+
+    labels:
+      # Dashboard
+      - "traefik.enable=true" # enable traefik for this container
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.localhost`)" # set the domain rule
+      - "traefik.http.routers.dashboard.service=api@internal" # set the service (named by traefik)
+
   #
   #
   #
@@ -18,3 +45,4 @@ services:
     labels:
       - "traefik.enable=true" # enable traefik for this container
       - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)" # set the domain rule
+
