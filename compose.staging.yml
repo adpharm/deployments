@@ -17,4 +17,4 @@ services:
       - proxy
     labels:
       - "traefik.enable=true" # enable traefik for this container
-      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)" # set the domain rule
+      - "traefik.http.routers.whoami.rule=Host(`whoami.staging.adapts.ca`)" # set the domain rule

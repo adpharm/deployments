@@ -1,0 +1,62 @@
+##############################################################################################################################
+#
+# The configuration here is meant to be included in a staging/production docker-compose file.
+#
+#  - See https://docs.docker.com/compose/multiple-compose-files/include/
+#
+##############################################################################################################################
+
+networks:
+  proxy:
+    name: proxy
+
+volumes:
+  letsencrypt:
+    name: letsencrypt
+
+services:
+  # the only service specified in this base compose file is traefik
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    networks:
+      - proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # docker socket (bind mount)
+      - "letsencrypt:/letsencrypt" # letsencrypt volume (named volume)
+    command:
+      - "--providers.docker=true" # enable docker as a provider
+      - "--providers.docker.exposedbydefault=false" # do not expose every container by default (only those explicitly exposed)
+
+      - "--entrypoints.web.address=:80" # http entrypoint
+      - "--entrypoints.websecure.address=:443" # https entrypoint
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure" # redirect all http to https
+      - "--entryPoints.web.http.redirections.entrypoint.scheme=https" # redirect all http to https
+      - "--entryPoints.web.http.redirections.entrypoint.permanent=true" # redirect all http to https
+      - --entrypoints.websecure.http.tls.certresolver=leresolver # use leresolver for https
+
+      - "--certificatesresolvers.leresolver.acme.email=ben@theadpharm.com" # email for letsencrypt
+      - "--certificatesresolvers.leresolver.acme.storage=/letsencrypt/acme.json" # letsencrypt storage file
+      - "--certificatesresolvers.leresolver.acme.tlschallenge=true" # tls challenge for letsencrypt
+
+      - "--log.level=INFO" # log level
+      - "--log.filePath=/var/log/traefik.log" # log file
+      - "--accesslog=true" # enable access log
+      - "--accesslog.filePath=/var/log/traefik-access.log" # access log file
+
+      - "--api" # enable the api and dashboard (secure)
+    labels:
+      # Dashboard
+      - "traefik.enable=true" # enable traefik for this container
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.staging.adapts.ca`)" # set the domain rule
+      - "traefik.http.routers.dashboard.service=api@internal" # set the service (named by traefik)
+      # - "traefik.http.routers.traefik.middlewares=myauth" # set up auth middleware
+      # - "traefik.http.middlewares.myauth.basicauth.users=user:$$apr1$$q8eZFHjF$$Fvmkk//V6Btlaf2i/ju5n/" # user/password
+
+      # redirect www to non-www?
+      # - traefik.http.middlewares.mywwwredirect.redirectregex.regex=^https://www\.(.*) # redirect www to non-www
+      # - traefik.http.middlewares.mywwwredirect.redirectregex.replacement=https://$${1} # redirect www to non-www
+      # - traefik.http.routers.mywhoami.middlewares=mywwwredirect # redirect www to non-www
